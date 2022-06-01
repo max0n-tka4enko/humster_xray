@@ -10,7 +10,7 @@
 
 
 /*
- The heart of your algo!
+ The heart of your algo
 */
 void dfs(int v, int color, int iw, int ih, int* col, unsigned char* mat) {
   //TODO Найти компоненты связности в  графе при помощи поиска в глубину
