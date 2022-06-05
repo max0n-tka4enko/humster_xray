@@ -82,7 +82,6 @@ int main() {
     int t_white = 160;
     gray_to_bw(newImage, iw, ih, t_black, t_white);
     /*
-
     // Implement these functions yourself if need!
     MyImage = bw_gauss(MyImage, iw, ih, t_black, t_white);
     MyImage = bw_sobel(MyImage, iw, ih, t_black, t_white);
