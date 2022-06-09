@@ -30,13 +30,6 @@ void high_contrast(unsigned char* data, int sizeW, int sizeH, int black, int whi
     }
 }
 
-
-
-
-int exists(int i, int j, int iw, int ih){
-    return (i>=1)&&(i<=ih-1)&&(j>=1)&&(j<=iw-1);
-}
-
 void MEGA_ULTRA_HARD_INCREDIBLE_DFS(int i, int j, int w, int h, unsigned char* data, int* v, int num){
     v[w*i+j] = num;
     if((i>=1) && (i<=h-1) && (j-2>=1) && (j-2<=w-1))
