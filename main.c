@@ -9,7 +9,6 @@
 #include "stb_image_write.h"
 
 
-//convert RGB to gray picture (to one-channel image)
 void go_to_mono(unsigned char* image, unsigned char* data, int sizeW, int sizeH, int n) {
     int size = sizeW * sizeH * n;
     int k = 0;
@@ -34,18 +33,37 @@ void high_contrast(unsigned char* data, int sizeW, int sizeH, int black, int whi
 
 
 
-void dfs(int v, int color, int iw, int ih, int* col, unsigned char* mat) {
-  //TODO Найти компоненты связности в  графе при помощи поиска в глубину
+int exists(int i, int j, int iw, int ih){
+    return (i>=1)&&(i<=ih-1)&&(j>=1)&&(j<=iw-1);
+}
+
+void MEGA_ULTRA_HARD_INCREDIBLE_DFS(int i, int j, int w, int h, unsigned char* data, int* v, int num){
+    v[w*i+j] = num;
+    if((i>=1) && (i<=h-1) && (j-2>=1) && (j-2<=w-1))
+        if((abs(data[w*i+j]-data[w*i+(j-2)]) <= 60) && (v[w*i+(j-2)] == 0))
+            MEGA_ULTRA_HARD_INCREDIBLE_DFS(i, j-2, w, h, data, v, num);
+        
+    if((i-2>=1) && (i-2<=h-1) && (j+1>=1) && (j+1<=w-1))
+        if((abs(data[w*i+j]-data[w*(i-2)+(j+1)]) <= 60) && (v[w*(i-2)+(j+1)] == 0))
+            MEGA_ULTRA_HARD_INCREDIBLE_DFS(i-2, j+1, w, h, data, v, num);
+    
+    if((i+1>=1) && (i+1<=h-1) && (j+1>=1) && (j+1<=w-1))
+        if((abs(data[w*i+j]-data[w*(i-2)+(j+1)]) <= 60) && (v[w*(i-2)+(j+1)] == 0))
+            MEGA_ULTRA_HARD_INCREDIBLE_DFS(i-2, j+1, w, h, data, v, num);
+
+    
+    if((i+2>=1) && (i+2<=h-1) && (j+1>=1) && (j+1<=w-1))
+        if((abs(data[w*i+j]-data[w*(i+2)+(j+1)]) <= 60) && (v[w*(i+2)+(j+1)] == 0))
+            MEGA_ULTRA_HARD_INCREDIBLE_DFS(i+2, j+1, w, h, data, v, num);
 }
 
 
 int main() {
-    // строка, путь к файлу
     char* inputPath = "hamster.png";
-    int iw, ih, n; //ширина, высота и количество цветовых каналов
-    int i, j, k;
+    int iw, ih, n; //width, height and number of channels of image
+    int i=0, j=0, k=0, num=0;
 
-    // Загружаем изображение, чтобы получить информацию о ширине, высоте и цветовом канале
+    //load image and get information of it
     unsigned char *input_image = stbi_load(inputPath, &iw, &ih, &n, 0);
     if (input_image == NULL) {
         printf("ERROR: can't read file %s\n", inputPath );
@@ -53,54 +71,47 @@ int main() {
     }
     
     unsigned char* data = (unsigned char*)malloc(ih*iw*sizeof(unsigned char));
-    if (data == NULL) {
+    int* vertexes = (int*) malloc(iw*ih*sizeof(int));
+    if (data == NULL || vertexes == NULL) {
             printf("Memory allocation error at main()" );
             return 0;
         }
-
+    //convert RGB to gray picture (to one-channel image) 
     go_to_mono(input_image, data, iw, ih, n);
-
+    //raise contrast
     int black = 100;
-    int white = 160;
+    int white = 150;
     high_contrast(data, iw, ih, black, white);
 
+    //array of vertexes with color-codes
+    for(i=0;i<iw*ih;i++)
+        vertexes[i] = 0;
 
-    
-    
-    /*
-    // Implement these functions yourself if need!
-    MyImage = bw_gauss(MyImage, iw, ih, t_black, t_white);
-    MyImage = bw_sobel(MyImage, iw, ih, t_black, t_white);
-    */
-    
-    /*
-     Let's colorize different connectivity components on the picture
-    */
-    /*int col[iw*ih];
-    for (i = 0; i < iw*ih; i++) { 
-        col[i] = 0;
-    }
-    k = 55;
-    //dfs making
-    for (i = 0; i < iw*ih; i++) {
-        if (col[i] == 0) {
-            dfs(i, k, iw, ih, col, newImage);
-            k = k + 50;
+    //make DFS
+    for (i=1;i<=ih-1;i++){
+        for (j=1;j<=iw-1;j++){
+            if(vertexes[iw*i+j]==0){
+                num++;
+                MEGA_ULTRA_HARD_INCREDIBLE_DFS(i, j, iw, ih, data, vertexes, num);
+            }
         }
+    } 
+
+    //color to RGB 
+    unsigned char* odata=(unsigned char*)malloc(iw*ih*n*sizeof(unsigned char));
+    int c;
+    for (i = 0; i < ih*iw*n; i += n){ 
+        c = vertexes[k]%50 + vertexes[k]%15;
+        odata[i] = 3*c - 25;
+        odata[i+1] = 4*c + 40;
+        odata[i+2] = 5*c + 50;
+        odata[i+3] = 255;
+        k++;  
     }
-    
-    //now have to color the colors from col
-    for (i = 0; i < iw*ih; i++) {
-        odata[i*n] = 78+col[i]+0.5*col[i-1];
-        odata[i*n+1] = 46+col[i];
-        odata[i*n+2] = 153+col[i];
-        if (n == 4) odata[i*n+3] = 255;
-    }
-    */
 
 
     char* outputPath = "output.png";
-    stbi_write_png(outputPath, iw, ih, 1, data, 0);
+    stbi_write_png(outputPath, iw, ih, n, odata, 0);
     free(data);
     stbi_image_free(input_image);
     return 0;
